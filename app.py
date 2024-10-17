@@ -16,6 +16,7 @@ app = App()
 demo = app.make()
 demo.queue().launch(
     favicon_path=app._favicon,
+    # share=True,
     inbrowser=True,
     allowed_paths=[
         "libs/ktem/ktem/assets",
