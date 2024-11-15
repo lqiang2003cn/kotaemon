@@ -306,3 +306,17 @@ docker container run --mount type=bind,source=$source,target=$target diamol/ch06
 # mount a single file:
 docker container run diamol/ch06-bind-mount
 docker container run --mount type=bind,source="$(pwd)/new/123.txt",target=/init/123.txt diamol/ch06-bind-mount
+
+# lab:
+# remove all containers
+docker container rm -f $(docker container ls -aq)
+# run a container: which already contains some data
+docker container run -d -p 8015:80 diamol/ch06-lab
+# create a named volume
+docker volume create ch06-lab
+# set variables
+configSource="$(pwd)/solution"
+configTarget='/app/config'
+dataTarget='/new-data'
+# run container with named volume which should be empty
+docker container run -d -p 8016:80 --mount type=bind,source=$configSource,target=$configTarget,readonly --volume ch06-lab:$dataTarget diamol/ch06-lab
