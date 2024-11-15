@@ -63,7 +63,9 @@ os.environ["HF_HUB_CACHE"] = str(KH_APP_DATA_DIR / "huggingface")
 KH_DOC_DIR = this_dir / "docs"
 
 KH_MODE = "dev"
-KH_FEATURE_CHAT_SUGGESTION = config("KH_FEATURE_CHAT_SUGGESTION", default=False)
+KH_FEATURE_CHAT_SUGGESTION = config(
+    "KH_FEATURE_CHAT_SUGGESTION", default=False, cast=bool
+)
 KH_FEATURE_USER_MANAGEMENT = config(
     "KH_FEATURE_USER_MANAGEMENT", default=True, cast=bool
 )
@@ -284,11 +286,36 @@ SETTINGS_REASONING = {
     },
 }
 
+USE_NANO_GRAPHRAG = config("USE_NANO_GRAPHRAG", default=False, cast=bool)
+USE_LIGHTRAG = config("USE_LIGHTRAG", default=False, cast=bool)
+
+GRAPHRAG_INDEX_TYPES = ["ktem.index.file.graph.GraphRAGIndex"]
+
+if USE_NANO_GRAPHRAG:
+    GRAPHRAG_INDEX_TYPES.append("ktem.index.file.graph.NanoGraphRAGIndex")
+elif USE_LIGHTRAG:
+    GRAPHRAG_INDEX_TYPES.append("ktem.index.file.graph.LightRAGIndex")
 
 KH_INDEX_TYPES = [
     "ktem.index.file.FileIndex",
-    "ktem.index.file.graph.GraphRAGIndex",
+    *GRAPHRAG_INDEX_TYPES,
 ]
+
+GRAPHRAG_INDICES = [
+    {
+        "name": graph_type.split(".")[-1].replace("Index", ""),  # get last name
+        "config": {
+            "supported_file_types": (
+                ".png, .jpeg, .jpg, .tiff, .tif, .pdf, .xls, .xlsx, .doc, .docx, "
+                ".pptx, .csv, .html, .mhtml, .txt, .md, .zip"
+            ),
+            "private": False,
+        },
+        "index_type": graph_type,
+    }
+    for graph_type in GRAPHRAG_INDEX_TYPES
+]
+
 KH_INDICES = [
     {
         "name": "File",
@@ -301,15 +328,5 @@ KH_INDICES = [
         },
         "index_type": "ktem.index.file.FileIndex",
     },
-    {
-        "name": "GraphRAG",
-        "config": {
-            "supported_file_types": (
-                ".png, .jpeg, .jpg, .tiff, .tif, .pdf, .xls, .xlsx, .doc, .docx, "
-                ".pptx, .csv, .html, .mhtml, .txt, .md, .zip"
-            ),
-            "private": False,
-        },
-        "index_type": "ktem.index.file.graph.GraphRAGIndex",
-    },
+    *GRAPHRAG_INDICES,
 ]
