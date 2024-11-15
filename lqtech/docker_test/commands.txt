@@ -1,0 +1,308 @@
+#################################### Chapter 2 ####################################
+# run a container based on an image:
+docker container run diamol/ch02-hello-diamol
+
+# run a container in an interactive way
+docker container run --interactive --tty diamol/base
+
+# list all the running docker containers
+docker container ls
+# list all running/not running containers
+docker container ls --all
+
+# list the process running a container: f1 is the initials of the container id
+docker container top b9
+
+# list the logs of a container
+docker container logs b9
+
+# inspect container details
+docker container inspect b9
+
+# start container in detached mode
+docker container run --detach --publish 8088:80 diamol/ch02-hello-diamol-web
+
+# show the status of a container: cpu, memory, network
+docker container stats 7c
+
+# remove all containers
+docker container rm --force $(docker container ls --all --quiet)
+
+# execute a command on a container: container id: 6b, command: ls /usr/local/apache2/htdocs
+docker container exec 6b  ls /usr/local/apache2/htdocs
+
+# copy local file to a container, whether or not the container is running
+docker container cp index.html 6b:/usr/local/apache2/htdocs/index.html
+
+#################################### Chapter 3 ####################################
+# pull an image
+docker image pull diamol/ch03-web-ping
+
+# run a container: -d is short for --detach
+docker container run -d --name web-ping diamol/ch03-web-ping
+
+# remove a container by force
+docker rm -f web-ping
+
+# start a container by setting environment variables
+docker container run --env TARGET=google.com diamol/ch03-web-ping
+
+# web ping docker file
+FROM diamol/node
+ENV TARGET="blog.sixeyed.com"
+ENV METHOD="HEAD"
+ENV INTERVAL="3000"
+WORKDIR /web-ping
+COPY app.js .
+CMD ["node", "/web-ping/app.js"]
+
+# build docker file: . means find the Dockerfile in the current directory
+docker image build --tag web-ping .
+
+# list all images start with a 'w'
+docker image ls 'w*'
+
+# run a container from your own image
+docker container run -e TARGET=docker.com -e INTERVAL=5000 web-ping
+
+# check history of an image
+docker image history web-ping
+
+# show disk usage of docker
+docker system df
+
+# optimize docker file:
+FROM diamol/node
+CMD ["node", "/web-ping/app.js"]
+ENV TARGET="blog.sixeyed.com" \
+    METHOD="HEAD" \
+    INTERVAL="3000"
+WORKDIR /web-ping
+COPY app.js .
+
+# build optimized docker file:
+docker image build -t web-ping:v3 .
+
+# produce an image without a Dockerfile
+# 1. run a docker container based on image 'diamol/ch03-lab'
+docker container run -it --name ch03lab diamol/ch03-lab
+# 2. make some changes in the container
+echo Elton >> ch03.txt
+# 3. commit the changes in the container to a image =>  container name:ch03lab, new image name: ch03-lab-soln
+docker container commit ch03lab ch03-lab-soln
+# 4. run a new container base on the new image and display the content of the file: ch03.txt
+docker container run ch03-lab-soln cat ch03.txt
+
+#################################### Chapter 4 ####################################
+# multi-stage dockerfile
+FROM diamol/base AS build-stage
+RUN echo 'Building...' > /build.txt
+FROM diamol/base AS test-stage
+COPY --from=build-stage /build.txt /build.txt
+RUN echo 'Testing...' >> /build.txt
+FROM diamol/base
+COPY --from=test-stage /build.txt /build.txt
+CMD cat /build.txt
+
+# build multi-stage
+docker image build -t multi-stage .
+# run a container based on the image
+docker container run multi-stage
+
+# build java dockerfile: ch04/image-of-the-day
+FROM diamol/maven AS builder
+WORKDIR /usr/src/iotd
+COPY pom.xml .
+RUN mvn -B dependency:go-offline
+COPY . .
+RUN mvn package
+# app
+FROM diamol/openjdk
+WORKDIR /app
+COPY --from=builder /usr/src/iotd/target/iotd-service-0.1.0.jar .
+EXPOSE 80
+ENTRYPOINT ["java", "-jar", "/app/iotd-service-0.1.0.jar"]
+
+# build the docker file
+docker image build -t image-of-the-day .
+
+# run the image
+docker container run --name iotd -d -p 800:80 --network nat image-of-the-day
+
+# docker file from: ch04/access-log
+FROM diamol/node AS builder
+WORKDIR /src
+COPY src/package.json .
+RUN npm install
+# app
+FROM diamol/node
+EXPOSE 80
+CMD ["node", "server.js"]
+WORKDIR /app
+COPY --from=builder /src/node_modules/ /app/node_modules/
+COPY src/ .
+
+# build the dockerfile
+docker image build -t access-log .
+
+# run the dockerfile
+docker container run --name accesslog -d -p 801:80 --network nat access-log
+
+# dockerfile for ch04/image-gallery
+FROM diamol/golang AS builder
+COPY main.go .
+RUN go build -o /server
+# app
+FROM diamol/base
+ENV IMAGE_API_URL="http://iotd/image" \
+    ACCESS_API_URL="http://accesslog/access-log"
+CMD ["/web/server"]
+WORKDIR web
+COPY index.html .
+COPY --from=builder /server .
+RUN chmod +x server
+
+# build the dockerfile
+docker image build -t image-gallery .
+
+# show image information
+docker image ls -f reference=diamol/golang -f reference=image-gallery
+
+# run the go image
+docker container run -d -p 802:80 --network nat image-gallery
+
+# lab
+# before optimization
+docker image build -t ch04-lab .
+docker container run -d -p 804:8 ch04-lab
+docker image ls -f reference=ch04-lab
+
+# after optimization
+# -f means the specified Dockerfile
+docker image build -t ch04-lab:optimized -f Dockerfile.optimized .
+docker container run -d -p 805:80 ch04-lab:optimized
+docker image ls -f reference=ch04-lab:optimized
+
+#################################### Chapter 5 ####################################
+# 'diamol/golang' is a short version of 'docker.io/diamol/golang:latest'
+
+# login using dockerid
+docker login --username liuqiangecnu
+# password: Lq...@...
+
+# create a new tag for local image before push it to docker hub
+docker image tag image-gallery liuqiangecnu/image-gallery:v1.1.1
+
+# list images
+docker image ls --filter reference=image-gallery --filter reference='*/image-gallery'
+
+# push the image
+docker image push $dockerId/image-gallery:v1.1.1
+
+# show image info on docker hub
+echo "https://hub.docker.com/r/liuqiangecnu/image-gallery/tags"
+
+#################################### Chapter 6 ####################################
+# run two containers for the same image
+docker container run --name rn1 diamol/ch06-random-number
+docker container run --name rn2 diamol/ch06-random-number
+
+# check the random number
+docker container cp rn1:/random/number.txt number1.txt
+docker container cp rn2:/random/number.txt number2.txt
+cat number1.txt
+cat number2.txt
+
+# create a container and change the container and run the container again by --attach option
+docker container run --name f1 diamol/ch06-file-display
+echo "http://eltonstoneman.com" > url.txt
+docker container cp url.txt f1:/input.txt
+docker container start --attach f1
+
+# create a new container and check that the input.txt is from the image
+docker container run --name f2 diamol/ch06-file-display
+# remove f1
+docker container rm -f f1
+# should see error: f1 is gone
+docker container cp f1:/input.txt .
+
+# dockerfile for todo-list:define volume in a image means not sharing data between containers
+FROM diamol/dotnet-sdk AS builder
+WORKDIR /src
+COPY src/ToDoList.csproj .
+RUN dotnet restore
+COPY src/ .
+RUN dotnet publish -c Release -o /out ToDoList.csproj
+# app image
+FROM diamol/dotnet-aspnet
+WORKDIR /app
+ENTRYPOINT ["dotnet", "ToDoList.dll"]
+# set in the base image - `/data` for Linux, `C:\data` for Windows
+VOLUME /data
+# set in the base image - `root` for Linux, `ContainerAdministrator` for Windows
+USER root
+COPY --from=builder /out/ .
+
+# check the volume info
+# run the image
+docker container run --name todo1 -d -p 8010:80 diamol/ch06-todo-list
+# check volume mounts
+docker container inspect --format '{{.Mounts}}' todo1
+# list volume
+docker volume ls
+
+# share volumes between containers
+docker container run --name todo2 -d -p 8011:80 diamol/ch06-todo-list
+# no data
+docker container exec todo2 ls /data
+# share data from another container
+docker container run -d --name t3 -d -p 8012:80 --volumes-from todo1 diamol/ch06-todo-list
+# check data for container t3
+docker container exec t3 ls /data
+
+# create a named volume
+# define target dir in the image
+target='/data'
+# create a standalone volume
+docker volume create todo-list
+# run a container with the volume
+docker container run -d -p 8011:80 -v todo-list:$target --name todo-v1 diamol/ch06-todo-list
+# add some data in  http://localhost:8011/list
+# remove the container, but the volume stays
+docker container rm -f todo-v1
+docker volume ls
+# run a new container from a newer image using the named volume: todo-list. this volume override the image volume
+docker container run -d -p 8011:80 -v todo-list:$target --name todo-v2 diamol/ch06-todo-list:v2
+# check in http://localhost:8011/list that the todo list stays
+# inspect volume details
+docker volume inspect todo-list
+
+
+# filesystem mounts
+# define source and target
+source="$(pwd)/databases" && target='/data'
+# mkdir to mount
+mkdir ./databases
+# run a container with mount
+docker container run --mount type=bind,source=$source,target=$target -d -p 8012:80 diamol/ch06-todo-list
+# access the url to create a db
+curl http://localhost:8012
+# list the database files
+ls ./databases
+
+# mount read-only directories
+# define source and target
+source="$(pwd)/config" && target='/app/config'
+# run read-only mount
+docker container run --name todo-configured -d -p 8013:80 --mount type=bind,source=$source,target=$target,readonly diamol/ch06-todo-list
+
+# mount directory: source dir override target dir
+source="$(pwd)/new" && target='/init'
+# run without mount
+docker container run diamol/ch06-bind-mount
+# run with mount:
+docker container run --mount type=bind,source=$source,target=$target diamol/ch06-bind-mount
+
+# mount a single file:
+docker container run diamol/ch06-bind-mount
+docker container run --mount type=bind,source="$(pwd)/new/123.txt",target=/init/123.txt diamol/ch06-bind-mount
