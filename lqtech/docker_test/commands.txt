@@ -197,7 +197,7 @@ docker image tag image-gallery liuqiangecnu/image-gallery:v1.1.1
 docker image ls --filter reference=image-gallery --filter reference='*/image-gallery'
 
 # push the image
-docker image push $dockerId/image-gallery:v1.1.1
+docker image push liuqiangecnu/image-gallery:v1.1.1
 
 # show image info on docker hub
 echo "https://hub.docker.com/r/liuqiangecnu/image-gallery/tags"
@@ -320,3 +320,4 @@ configTarget='/app/config'
 dataTarget='/new-data'
 # run container with named volume which should be empty
 docker container run -d -p 8016:80 --mount type=bind,source=$configSource,target=$configTarget,readonly --volume ch06-lab:$dataTarget diamol/ch06-lab
+
