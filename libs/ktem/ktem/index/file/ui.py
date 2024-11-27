@@ -1272,7 +1272,6 @@ class FileSelector(BasePage):
 
     def on_building_ui(self):
         default_mode, default_selector, user_id = self.default()
-
         self.mode = gr.Radio(
             value=default_mode,
             choices=[

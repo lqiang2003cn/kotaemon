@@ -12,7 +12,7 @@ KH_DEMO_MODE = getattr(flowsettings, "KH_DEMO_MODE", False)
 KH_ENABLE_FIRST_SETUP = getattr(flowsettings, "KH_ENABLE_FIRST_SETUP", False)
 KH_APP_DATA_EXISTS = getattr(flowsettings, "KH_APP_DATA_EXISTS", True)
 
-# override first setup setting
+# override first setup settingz
 if config("KH_FIRST_SETUP", default=False, cast=bool):
     KH_APP_DATA_EXISTS = False
 
@@ -76,7 +76,7 @@ class App(BaseApp):
                         setattr(self, f"_index_{index.id}", page)
             elif len(self.index_manager.indices) > 1:
                 with gr.Tab(
-                    "Files",
+                    "Files文件",
                     elem_id="indices-tab",
                     elem_classes=["fill-main-area-height", "scrollable", "indices-tab"],
                     id="indices-tab",
@@ -109,7 +109,7 @@ class App(BaseApp):
                 self.settings_page = SettingsPage(self)
 
             with gr.Tab(
-                "Help",
+                "Help帮助",
                 elem_id="help-tab",
                 id="help-tab",
                 visible=not self.f_user_management,

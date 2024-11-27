@@ -88,54 +88,69 @@ class ChatPage(BasePage):
             self.state_plot_history = gr.State([])
             self.state_plot_panel = gr.State(None)
             self.state_follow_up = gr.State(None)
+            # with gr.Column(scale=1, elem_id="conv-settings-panel") as self.conv_column:
 
-            with gr.Column(scale=1, elem_id="conv-settings-panel") as self.conv_column:
-                self.chat_control = ConversationControl(self._app)
 
-                for index_id, index in enumerate(self._app.index_manager.indices):
-                    index.selector = None
-                    index_ui = index.get_selector_component_ui()
-                    if not index_ui:
-                        # the index doesn't have a selector UI component
-                        continue
 
-                    index_ui.unrender()  # need to rerender later within Accordion
-                    with gr.Accordion(
-                        label=f"{index.name} Collection", open=index_id < 1
-                    ):
-                        index_ui.render()
-                        gr_index = index_ui.as_gradio_component()
-                        if gr_index:
-                            if isinstance(gr_index, list):
-                                index.selector = tuple(
-                                    range(
-                                        len(self._indices_input),
-                                        len(self._indices_input) + len(gr_index),
-                                    )
-                                )
-                                index.default_selector = index_ui.default()
-                                self._indices_input.extend(gr_index)
-                            else:
-                                index.selector = len(self._indices_input)
-                                index.default_selector = index_ui.default()
-                                self._indices_input.append(gr_index)
-                        setattr(self, f"_index_{index.id}", index_ui)
+            # index_ui.unrender()  # need to rerender later within Accordion
+            # with gr.Accordion(
+            #         label=f"{index.name} Collection", open=index_id < 1
+            # ):
+            #     index_ui.render()
+            #     gr_index = index_ui.as_gradio_component()
+            #     if gr_index:
+            #         if isinstance(gr_index, list):
+            #             index.selector = tuple(
+            #                 range(
+            #                     len(self._indices_input),
+            #                     len(self._indices_input) + len(gr_index),
+            #                 )
+            #             )
+            #             index.default_selector = index_ui.default()
+            #             self._indices_input.extend(gr_index)
+            #         else:
+            #             index.selector = len(self._indices_input)
+            #             index.default_selector = index_ui.default()
+            #             self._indices_input.append(gr_index)
+            #     setattr(self, f"_index_{index.id}", index_ui)
+            print("Quick Upload已删除")
 
-                if len(self._app.index_manager.indices) > 0:
-                    with gr.Accordion(label="Quick Upload") as _:
-                        self.quick_file_upload = File(
-                            file_types=list(KH_DEFAULT_FILE_EXTRACTORS.keys()),
-                            file_count="multiple",
-                            container=True,
-                            show_label=False,
-                        )
-                        self.quick_file_upload_status = gr.Markdown()
+            # if len(self._app.index_manager.indices) > 0:
+            #     with gr.Accordion(label="Quick Upload") as _:
+            #         self.quick_file_upload = File(
+            #             file_types=list(KH_DEFAULT_FILE_EXTRACTORS.keys()),
+            #             file_count="multiple",
+            #             container=True,
+            #             show_label=False,
+            #         )
+            #         self.quick_file_upload_status = gr.Markdown()
 
-                self.report_issue = ReportIssue(self._app)
+            self.report_issue = ReportIssue(self._app)
 
-            with gr.Column(scale=6, elem_id="chat-area"):
+            for index_id, index in enumerate(self._app.index_manager.indices):
+                if  index_id == 0:
+                    index_pdf = index_id
+                if index_id == len(self._app.index_manager.indices) - 1:
+                    index_lightRag = index_id
+            with gr.Column(
+                scale=INFO_PANEL_SCALES[False], elem_id="chat-info-panel"
+            ) as self.info_column:
+                if index_pdf==0:
+                    with gr.Accordion(label="Information panel_pdf", open=True):
+                        self.modal = gr.HTML("<div id='pdf-modal'></div>")
+                        # self.plot_panel = gr.Plot(visible=False)
+                        self.info_panel = gr.HTML(elem_id="html-info-panel")
+            with gr.Column(
+                scale=INFO_PANEL_SCALES[False], elem_id="chat-info-panel"
+            ) as self.info_column:
+                if index_lightRag==len(self._app.index_manager.indices) - 1:
+                    with gr.Accordion(label="Information panel_LightRAG", open=True):
+                        # self.modal = gr.HTML("<div id='LightRAG-modal'></div>")
+                        self.modal_2 = gr.HTML("<div id='pdf-modal_2'></div>")
+                        self.info_panel_2 = gr.HTML(elem_id="html-info-panel_2")
+
+            with gr.Column(scale=1, elem_id="chat-area"):
                 self.chat_panel = ChatPanel(self._app)
-
                 with gr.Row():
                     with gr.Accordion(label="Chat settings", open=False):
                         # a quick switch for reasoning type option
@@ -165,14 +180,42 @@ class ChatPage(BasePage):
                                 container=False,
                                 show_label=False,
                             )
+                self.chat_control = ConversationControl(self._app)
 
-            with gr.Column(
-                scale=INFO_PANEL_SCALES[False], elem_id="chat-info-panel"
-            ) as self.info_column:
-                with gr.Accordion(label="Information panel", open=True):
-                    self.modal = gr.HTML("<div id='pdf-modal'></div>")
-                    self.plot_panel = gr.Plot(visible=False)
-                    self.info_panel = gr.HTML(elem_id="html-info-panel")
+
+
+
+
+                for index_id, index in enumerate(self._app.index_manager.indices):
+                    index.selector = None
+                    index_ui = index.get_selector_component_ui()
+                    if not index_ui:
+                        # the index doesn't have a selector UI component
+                        continue
+                    visible = index_id == 0 or index_id == len(self._app.index_manager.indices) - 1
+                    index_ui.unrender()  # need to rerender later within Accordion
+                    with gr.Accordion(
+                            label=f"{index.name} Collection", open=visible,visible=visible
+                    ):
+                        index_ui.render()
+                        gr_index = index_ui.as_gradio_component()
+                        if gr_index:
+                            if isinstance(gr_index, list):
+                                index.selector = tuple(
+                                    range(
+                                        len(self._indices_input),
+                                        len(self._indices_input) + len(gr_index),
+                                    )
+                                )
+                                index.default_selector = index_ui.default()
+                                self._indices_input.extend(gr_index)
+                            else:
+                                index.selector = len(self._indices_input)
+                                index.default_selector = index_ui.default()
+                                self._indices_input.append(gr_index)
+                        setattr(self, f"_index_{index.id}", index_ui)
+
+
 
     def _json_to_plot(self, json_dict: dict | None):
         if json_dict:
@@ -228,7 +271,8 @@ class ChatPage(BasePage):
                 outputs=[
                     self.chat_panel.chatbot,
                     self.info_panel,
-                    self.plot_panel,
+                    self.info_panel_2,
+                    # self.plot_panel,
                     self.state_plot_panel,
                     self.state_chat,
                 ],
@@ -297,6 +341,7 @@ class ChatPage(BasePage):
                 self.chat_control.conversation_id,
                 self._app.user_id,
                 self.info_panel,
+                self.info_panel_2,
                 self.state_plot_panel,
                 self.state_retrieval_history,
                 self.state_plot_history,
@@ -340,6 +385,7 @@ class ChatPage(BasePage):
                 self.chat_panel.chatbot,
                 self.state_follow_up,
                 self.info_panel,
+                self.info_panel_2,
                 self.state_plot_panel,
                 self.state_retrieval_history,
                 self.state_plot_history,
@@ -351,7 +397,7 @@ class ChatPage(BasePage):
         ).then(
             fn=self._json_to_plot,
             inputs=self.state_plot_panel,
-            outputs=self.plot_panel,
+            # outputs=self.plot_panel,
         )
 
         self.chat_control.btn_del.click(
@@ -374,6 +420,7 @@ class ChatPage(BasePage):
                 self.chat_panel.chatbot,
                 self.state_follow_up,
                 self.info_panel,
+                self.info_panel_2,
                 self.state_plot_panel,
                 self.state_retrieval_history,
                 self.state_plot_history,
@@ -385,7 +432,7 @@ class ChatPage(BasePage):
         ).then(
             fn=self._json_to_plot,
             inputs=self.state_plot_panel,
-            outputs=self.plot_panel,
+            # outputs=self.plot_panel,
         ).then(
             lambda: self.toggle_delete(""),
             outputs=[self.chat_control._new_delete, self.chat_control._delete_confirm],
@@ -426,6 +473,7 @@ class ChatPage(BasePage):
                 self.chat_panel.chatbot,
                 self.state_follow_up,
                 self.info_panel,
+                self.info_panel_2,
                 self.state_plot_panel,
                 self.state_retrieval_history,
                 self.state_plot_history,
@@ -437,7 +485,7 @@ class ChatPage(BasePage):
         ).then(
             fn=self._json_to_plot,
             inputs=self.state_plot_panel,
-            outputs=self.plot_panel,
+            # outputs=self.plot_panel,
         ).then(
             lambda: self.toggle_delete(""),
             outputs=[self.chat_control._new_delete, self.chat_control._delete_confirm],
@@ -454,12 +502,13 @@ class ChatPage(BasePage):
             ],
             outputs=[
                 self.info_panel,
+                self.info_panel_2,
                 self.state_plot_panel,
             ],
         ).then(
             fn=self._json_to_plot,
             inputs=self.state_plot_panel,
-            outputs=self.plot_panel,
+            # outputs=self.plot_panel,
         ).then(
             fn=None, inputs=None, outputs=None, js=pdfview_js
         )
@@ -471,22 +520,22 @@ class ChatPage(BasePage):
             show_progress="hidden",
         )
 
-        self.report_issue.report_btn.click(
-            self.report_issue.report,
-            inputs=[
-                self.report_issue.correctness,
-                self.report_issue.issues,
-                self.report_issue.more_detail,
-                self.chat_control.conversation_id,
-                self.chat_panel.chatbot,
-                self._app.settings_state,
-                self._app.user_id,
-                self.info_panel,
-                self.state_chat,
-            ]
-            + self._indices_input,
-            outputs=None,
-        )
+        # self.report_issue.report_btn.click(
+        #     self.report_issue.report,
+        #     inputs=[
+        #         self.report_issue.correctness,
+        #         self.report_issue.issues,
+        #         self.report_issue.more_detail,
+        #         self.chat_control.conversation_id,
+        #         self.chat_panel.chatbot,
+        #         self._app.settings_state,
+        #         self._app.user_id,
+        #         self.info_panel,
+        #         self.state_chat,
+        #     ]
+        #     + self._indices_input,
+        #     outputs=None,
+        # )
         self.reasoning_types.change(
             self.reasoning_changed,
             inputs=[self.reasoning_types],
@@ -499,7 +548,7 @@ class ChatPage(BasePage):
         )
         self.chat_control.conversation_id.change(
             lambda: gr.update(visible=False),
-            outputs=self.plot_panel,
+            # outputs=self.plot_panel,
         )
 
         if getattr(flowsettings, "KH_FEATURE_CHAT_SUGGESTION", False):
@@ -604,6 +653,7 @@ class ChatPage(BasePage):
                         self.chat_control.conversation_rn,
                         self.chat_panel.chatbot,
                         self.info_panel,
+                        self.info_panel_2,
                         self.state_plot_panel,
                         self.state_retrieval_history,
                         self.state_plot_history,

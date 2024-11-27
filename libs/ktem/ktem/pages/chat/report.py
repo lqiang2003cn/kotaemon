@@ -12,34 +12,35 @@ class ReportIssue(BasePage):
         self.on_building_ui()
 
     def on_building_ui(self):
-        with gr.Accordion(label="Feedback", open=False):
-            self.correctness = gr.Radio(
-                choices=[
-                    ("The answer is correct", "correct"),
-                    ("The answer is incorrect", "incorrect"),
-                ],
-                label="Correctness:",
-            )
-            self.issues = gr.CheckboxGroup(
-                choices=[
-                    ("The answer is offensive", "offensive"),
-                    ("The evidence is incorrect", "wrong-evidence"),
-                ],
-                label="Other issue:",
-            )
-            self.more_detail = gr.Textbox(
-                placeholder=(
-                    "More detail (e.g. how wrong is it, what is the "
-                    "correct answer, etc...)"
-                ),
-                container=False,
-                lines=3,
-            )
-            gr.Markdown(
-                "This will send the current chat and the user settings to "
-                "help with investigation"
-            )
-            self.report_btn = gr.Button("Report")
+        print("Feedback已删除")
+        # with gr.Accordion(label="Feedback", open=False):
+        #     self.correctness = gr.Radio(
+        #         choices=[
+        #             ("The answer is correct", "correct"),
+        #             ("The answer is incorrect", "incorrect"),
+        #         ],
+        #         label="Correctness:",
+        #     )
+        #     self.issues = gr.CheckboxGroup(
+        #         choices=[
+        #             ("The answer is offensive", "offensive"),
+        #             ("The evidence is incorrect", "wrong-evidence"),
+        #         ],
+        #         label="Other issue:",
+        #     )
+        #     self.more_detail = gr.Textbox(
+        #         placeholder=(
+        #             "More detail (e.g. how wrong is it, what is the "
+        #             "correct answer, etc...)"
+        #         ),
+        #         container=False,
+        #         lines=3,
+        #     )
+        #     gr.Markdown(
+        #         "This will send the current chat and the user settings to "
+        #         "help with investigation"
+        #     )
+        #     self.report_btn = gr.Button("Report")
 
     def report(
         self,

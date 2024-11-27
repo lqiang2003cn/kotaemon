@@ -3,6 +3,7 @@ from ktem.app import BasePage
 
 
 class ChatPanel(BasePage):
+    print("start...")
     def __init__(self, app):
         self._app = app
         self.on_building_ui()
@@ -14,6 +15,7 @@ class ChatPanel(BasePage):
                 "This is the beginning of a new conversation.\nIf you are new, "
                 "visit the Help tab for quick instructions."
             ),
+
             show_label=False,
             elem_id="main-chat-bot",
             show_copy_button=True,
@@ -21,11 +23,12 @@ class ChatPanel(BasePage):
             bubble_full_width=False,
         )
         with gr.Row():
+            # self.text_input =gr.Text()
             self.text_input = gr.MultimodalTextbox(
                 interactive=True,
                 scale=20,
                 file_count="multiple",
-                placeholder="Chat input",
+                placeholder="Chat input123",
                 container=False,
                 show_label=False,
             )
