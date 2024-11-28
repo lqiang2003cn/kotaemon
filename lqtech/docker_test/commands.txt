@@ -321,3 +321,8 @@ dataTarget='/new-data'
 # run container with named volume which should be empty
 docker container run -d -p 8016:80 --mount type=bind,source=$configSource,target=$configTarget,readonly --volume ch06-lab:$dataTarget diamol/ch06-lab
 
+#################################### Chapter 7 ########################################
+docker network create nat
+cd ./ch07/exercises/todo-list
+# using the latest compose without the -
+docker compose up
