@@ -39,7 +39,7 @@ class ConversationControl(BasePage):
 
     def on_building_ui(self):
         with gr.Row():
-            gr.Markdown("## Conversations")
+            gr.Markdown("## History")
             self.btn_toggle_dark_mode = gr.Button(
                 value="",
                 icon=f"{ASSETS_DIR}/dark_mode.svg",
@@ -260,6 +260,12 @@ class ConversationControl(BasePage):
                     if retrieval_history
                     else "<h5><b>No evidence found.</b></h5>"
                 )
+                info_panel_2 = (
+                    retrieval_history[-1]
+                    if retrieval_history
+                    else "<h5><b>No evidence found.</b></h5>"
+                )
+
                 plot_data = plot_history[-1] if plot_history else None
                 state = result.data_source.get("state", STATE)
 
@@ -273,6 +279,7 @@ class ConversationControl(BasePage):
                 retrieval_history = []
                 plot_history = []
                 info_panel = ""
+                info_panel_2=""
                 plot_data = None
                 state = STATE
                 is_conv_public = False
@@ -294,6 +301,7 @@ class ConversationControl(BasePage):
             chats,
             chat_suggestions,
             info_panel,
+            info_panel_2,
             plot_data,
             retrieval_history,
             plot_history,

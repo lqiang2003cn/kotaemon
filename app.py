@@ -17,6 +17,8 @@ demo = app.make()
 demo.queue().launch(
     favicon_path=app._favicon,
     # share=True,
+    #server_name="0.0.0.0",  # 允许通过局域网或公网访问
+    #server_port=7860,       # 指定一个未被占用的端口
     inbrowser=True,
     allowed_paths=[
         "libs/ktem/ktem/assets",
